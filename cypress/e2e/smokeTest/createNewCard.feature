@@ -1,11 +1,9 @@
-Feature: Check login functionality
+Feature: Add new card
+    The card should be added successfully
 
-    The user should be login successfully
-
-    Scenario: Verify that the user can login successfully
-
-        Given The user navigated to login page in trello website
-        # When Enter userName in userName input field
-        # And Enter password in password input field
-        # And Click on log in button
-        # Then The user should be login successfully
+    Scenario: Verify that the user can add new card successfully
+      Given The user navigated to the board
+        When The user click on add new card button
+        And Enter cardTitle in title input field
+        And Click on add button
+        Then The card should be added successfully
