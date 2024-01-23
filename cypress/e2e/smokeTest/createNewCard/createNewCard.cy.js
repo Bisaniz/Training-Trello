@@ -1,50 +1,70 @@
-/// <reference types="cypress" />
-describe('login', () => {
+import { Given, Then, When } from "cypress-cucumber-preprocessor/steps";
+import sharedDataUtils from "../../../pageObjects/shared/dataUtils.cy";
+import sharedActions from "../../../pageObjects/shared/Actions.cy";
+import createNewCardsActions from "../../../pageObjects/createNewCard/Actions.cy";
+import createNewCardsAssertions from "../../../pageObjects/createNewCard/Assertions.cy";
+//import { data } from "cypress/types/jquery";
 
-    const email = "bisandawabsheh@gmail.com";
-    const password = "1172950@B";
+const sharedDataUtil= new sharedDataUtils
+const createNewCardAction = new createNewCardsActions
+const createNewCardAssertions = new createNewCardsAssertions
+const sharedAction= new sharedActions
 
-    it('login', () => {
-        cy.visit("https://id.atlassian.com/login");
-        cy.trelloLogin(email,password);// custom command 
+const boardName = "CypressBoard";
+const cardTitle = "CypressCard";
+let boardId, boardURL;
 
-    });
+
+before(()=>{
+    cy.visit("https://trello.com/login");
+    cy.get('#user').clear().type("bisandawabsheh@gmail.com");
+    cy.get('#login').first().click();
+    cy.wait(1000);
+    cy.origin("https://id.atlassian.com",()=>{
+        // { args:{ password } },({password}) 
+        cy.get('#password').clear().type("1172950@B");
+        cy.get('#login-submit').click();
+    }); 
+    // sharedDataUtil.createNewBoard(boardName).then((response)=>{
+    //     boardId = response.body.id
+    //     boardURL = response.body.url
+    // })
+    sharedDataUtil.createNewBoard(boardName)
+    .as('boardResponse')
+})
+
+
+Given("The user navigated to the board",()=>{
+    cy.wait(3000)
+    // sharedAction.openBoard(boardURL)
+
+    cy.get("@boardResponse").then((data)=>{
+        cy.log(data)
+        sharedAction.openBoard(data.body.url);
+    })
 });
 
 
-// import { Given, Then, When } from "cypress-cucumber-preprocessor/steps";
+When("The user click on add new card button",()=>{
+    createNewCardAction.clickOnAddNewCardbutton()
+});
 
-// Given("The user navigated to login page in trello website",()=>{
-//     cy.visit("https://id.atlassian.com/login");
-// });
+When("Enter cardTitle in title input field",()=>{
+    createNewCardAction.typeInCardTitleField(cardTitle)
+});
 
-// When("Enter userName in userName input field",()=>{
-//     cy.get("#username").clear().type('bisandawabsheh@gmail.com');
-// });
-
-// When("Enter password in password input field",()=>{
-//     cy.get("#Password").clear().type('1172950@B');
-// });
-
-// When("Click on log in button",()=>{
-//     cy.get(".login-submit").click();
-// });
+When("Click on add button",()=>{
+    createNewCardAction.clickOnAddCardButton()
+});
 
 
+Then("The card should be added successfully",()=>{
+    createNewCardAssertions.checkCardIsContain("CypressCard")
+});
 
-// Then("The user should be login successfully",()=>{
-//     cy.get(".alert-success").should("contain","The new discount has been added successfully.");
-// });
-
-// import { Given} from "cypress-cucumber-preprocessor/steps";
-
-// const userName = "bisandawabsheh@gmail.com";
-//     const password = "1172950@B";
-
-// Given("The user navigated to login page in trello website",()=>{
-// cy.visit("https://id.atlassian.com/login");
-// cy.trelloLogin(userName,password);// custom command 
-//  });
-
-
-
+    after(()=>{
+        cy.get("@boardResponse").then((data)=>{
+            sharedDataUtil.deleteBoard(data.body.id)
+        });  
+    // // sharedDataUtil.deleteBoard(boardId)
+    }); 
